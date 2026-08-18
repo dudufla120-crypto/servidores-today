@@ -16,6 +16,7 @@ import {
   stopServer,
   uploadFile,
 } from "../frontend/src/api";
+import { AdBlockSlot } from "../frontend/src/components/Ads";
 
 type Tab = "console" | "files" | "plugins" | "mods";
 
@@ -554,6 +555,8 @@ export function ServerPage({ id, onBack }: { id: string; onBack: () => void }) {
           )}
         </div>
       )}
+
+      <AdBlockSlot />
 
       {viewing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setViewing(null)}>

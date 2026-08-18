@@ -2,6 +2,7 @@ import { useState } from "react";
 import { DashboardPage } from "../../pages/DashboardPage";
 import { CreateServerPage } from "../../pages/CreateServerPage";
 import { ServerPage } from "../../pages/ServerPage";
+import { AdBanner, AdBlockGate } from "./components/Ads";
 
 export default function App() {
   const [view, setView] = useState<"dashboard" | "create" | "server">("dashboard");
@@ -42,7 +43,10 @@ export default function App() {
         </div>
       </header>
 
+      <AdBlockGate />
+
       <main className="mx-auto max-w-4xl px-4 py-8">
+        <AdBanner />
         {view === "dashboard" && <DashboardPage onNew={() => setView("create")} onOpen={openServer} />}
         {view === "create" && <CreateServerPage onBack={() => setView("dashboard")} />}
         {view === "server" && serverId && (

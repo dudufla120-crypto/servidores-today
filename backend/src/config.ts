@@ -19,6 +19,9 @@ export interface AppConfig {
   neoforgeMavenUrl: string;
   spigotFallbackDownload: string;
   curseforgeApiKey?: string;
+  adsenseClient?: string;
+  adsenseSlotBanner?: string;
+  adsenseSlotSidebar?: string;
   fileSshHost?: string;
   fileSshPort?: number;
   fileSshUser?: string;
@@ -46,6 +49,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     neoforgeMavenUrl: env.NEOFORGE_MAVEN_URL ?? "https://maven.neoforged.net/releases/net/neoforged/neoforge/maven-metadata.xml",
     spigotFallbackDownload: env.SPIGOT_FALLBACK_DOWNLOAD ?? "https://download.spigotmc.org/spigot",
     curseforgeApiKey: env.CURSEFORGE_API_KEY,
+    adsenseClient: env.GOOGLE_ADSENSE_CLIENT_ID,
+    adsenseSlotBanner: env.ADSENSE_SLOT_BANNER,
+    adsenseSlotSidebar: env.ADSENSE_SLOT_SIDEBAR,
     fileSshHost: env.FILE_SSH_HOST,
     fileSshPort: Number(env.FILE_SSH_PORT ?? 22),
     fileSshUser: env.FILE_SSH_USER,

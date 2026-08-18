@@ -33,6 +33,19 @@ export function buildRouter(config: AppConfig): Router {
     res.json({ status: "ok", time: new Date().toISOString() });
   });
 
+  router.get("/config/public", (_req, res) => {
+    const client = config.adsenseClient ?? "";
+    const enabled = /^ca-pub-\d{16}$/.test(client);
+    res.json({
+      adsense: {
+        enabled,
+        client: enabled ? client : "",
+        slotBanner: enabled ? (config.adsenseSlotBanner ?? "") : "",
+        slotSidebar: enabled ? (config.adsenseSlotSidebar ?? "") : "",
+      },
+    });
+  });
+
   router.get("/engines", (_req, res) => {
     res.json({ engines: ENGINE_LIST });
   });

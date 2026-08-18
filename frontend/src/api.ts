@@ -173,3 +173,23 @@ export function fetchServer(id: string): Promise<{
 }> {
   return request(`/servers/${id}`);
 }
+
+export interface PublicConfig {
+  adsense: {
+    enabled: boolean;
+    client: string;
+    slotBanner: string;
+    slotSidebar: string;
+  };
+}
+
+let publicConfigCache: Promise<PublicConfig> | null = null;
+
+export function fetchPublicConfig(): Promise<PublicConfig> {
+  if (!publicConfigCache) {
+    publicConfigCache = request<PublicConfig>("/config/public").catch(() => ({
+      adsense: { enabled: false, client: "", slotBanner: "", slotSidebar: "" },
+    }));
+  }
+  return publicConfigCache;
+}
