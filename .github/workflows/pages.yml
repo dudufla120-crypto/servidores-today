@@ -1,0 +1,54 @@
+name: Pages
+
+# Publica a interface do painel (frontend compilado) no GitHub Pages.
+# O backend (API + banco + servidores Minecraft) continua rodando no seu
+# servidor/VPS; o Pages exibe apenas a tela do painel.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Buildar frontend e publicar no Pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Build do frontend
+        run: npm run build -w frontend
+        env:
+          VITE_BASE: /${{ github.event.repository.name }}/
+          VITE_API_URL: /api
+
+      - name: Configurar Pages
+        uses: actions/configure-pages@v5
+
+      - name: Publicar artefato
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/dist
+
+      - name: Deploy no Pages
+        uses: actions/deploy-pages@v4
