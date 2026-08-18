@@ -137,6 +137,25 @@ export async function closeDb(): Promise<void> {
   }
 }
 
+export async function ensureSchema(_config: AppConfig): Promise<void> {
+  if (!usesPostgres()) return;
+  await getPool(_config).query(`
+    CREATE TABLE IF NOT EXISTS servers (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      slug TEXT NOT NULL,
+      engine TEXT NOT NULL,
+      mc_version TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'installing',
+      memory_mb INTEGER NOT NULL DEFAULT 2048,
+      port INTEGER NOT NULL,
+      install_dir TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      started_at TIMESTAMPTZ
+    )
+  `);
+}
+
 export async function insertServer(
   config: AppConfig,
   server: {

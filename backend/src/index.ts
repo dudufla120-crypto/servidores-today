@@ -3,7 +3,7 @@ import cors from "cors";
 import express from "express";
 import type { NextFunction, Request, Response } from "express";
 import { loadConfig } from "./config.js";
-import { forceFileMode, pingDb, usesPostgres } from "./db.js";
+import { ensureSchema, forceFileMode, pingDb, usesPostgres } from "./db.js";
 import { buildRouter } from "./routes.js";
 
 async function main(): Promise<void> {
@@ -40,7 +40,8 @@ async function main(): Promise<void> {
   } else if (!dbUp) {
     forceFileMode();
   } else {
-    console.log("[api] Banco de dados conectado.");
+    await ensureSchema(config);
+    console.log("[api] Banco de dados conectado (PostgreSQL).");
   }
 
   app.listen(config.port, () => {

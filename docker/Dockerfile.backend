@@ -1,12 +1,15 @@
 # ============================================================
 # Way Servidores - backend + worker (imagem única, comando troca)
 # Build: docker build -f docker/Dockerfile.backend -t way-backend .
+# Usa Java 21 para rodar os servidores Minecraft + node-pty (console).
 # ============================================================
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
-COPY package.json tsconfig.base.json ./
+RUN apk add --no-cache python3 make g++ linux-headers
+
+COPY package.json package-lock.json tsconfig.base.json ./
 COPY backend/package.json backend/
 COPY server-manager/package.json server-manager/
 COPY plugin-manager/package.json plugin-manager/
@@ -15,17 +18,20 @@ COPY file-manager/package.json file-manager/
 COPY workers/package.json workers/
 COPY frontend/package.json frontend/
 
-RUN npm install
+RUN npm ci
 
 COPY . .
 
-RUN npm run build -w backend
+RUN npm run build -w backend && npm prune --omit=dev
 
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
 ENV NODE_ENV=production
+
+# Java 21 (JRE) para iniciar os servidores Minecraft
+RUN apk add --no-cache openjdk21-jre-headless bash
 
 COPY --from=build /app/package.json /app/tsconfig.base.json ./
 COPY --from=build /app/node_modules ./node_modules
@@ -38,6 +44,8 @@ COPY --from=build /app/mod-manager ./mod-manager
 COPY --from=build /app/file-manager ./file-manager
 COPY --from=build /app/workers ./workers
 
+RUN mkdir -p /app/data/servidores
+
 EXPOSE 4000
 
-CMD ["node", "dist/backend/src/index.js"]
+CMD ["node", "backend/dist/backend/src/index.js"]
