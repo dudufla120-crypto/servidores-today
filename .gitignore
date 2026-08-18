@@ -1,0 +1,30 @@
+# Dependências
+node_modules/
+
+# Builds
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Variáveis de ambiente e segredos (NUNCA commitar)
+.env
+.env.*.local
+
+# Dados de runtime (ficam nas VMs/servidores, NUNCA no GitHub)
+data/
+*.log
+logs/
+
+# Cache de versões (regenerado pelo worker)
+database/cache/*.json
+!database/cache/.gitkeep
+
+# IDE / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docker local
+docker/data/

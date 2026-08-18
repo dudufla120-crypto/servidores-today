@@ -1,0 +1,21 @@
+{
+    "name":  "@way/file-manager",
+    "version":  "1.0.0",
+    "private":  true,
+    "description":  "Acesso aos arquivos dos servidores nas VMs: local (mesma máquina) ou via SSH.",
+    "main":  "dist/index.js",
+    "scripts":  {
+                    "build":  "tsc",
+                    "typecheck":  "tsc --noEmit"
+                },
+    "dependencies":  {
+                         "ssh2":  "^1.16.0"
+                     },
+    "devDependencies":  {
+                            "@types/node":  "^22.10.2",
+                            "@types/ssh2":  "^1.15.4",
+                            "tsx":  "^4.19.2",
+                            "typescript":  "^5.7.2"
+                        },
+    "type":  "module"
+}

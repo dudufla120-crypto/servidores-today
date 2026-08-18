@@ -1,0 +1,17 @@
+{
+    "name":  "@way/plugin-manager",
+    "version":  "1.0.0",
+    "private":  true,
+    "description":  "Busca e instalação de plugins (PaperMC Hangar, Modrinth, Spiget).",
+    "main":  "dist/index.js",
+    "scripts":  {
+                    "build":  "tsc",
+                    "typecheck":  "tsc --noEmit"
+                },
+    "devDependencies":  {
+                            "tsx":  "^4.19.2",
+                            "typescript":  "^5.7.2",
+                            "@types/node":  "^22.10.2"
+                        },
+    "type":  "module"
+}

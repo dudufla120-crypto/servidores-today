@@ -1,0 +1,21 @@
+{
+    "name": "@way/server-manager",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Gerencia o ciclo de vida dos servidores Minecraft: resolução de versões, download de jars, instalação e processos.",
+    "main": "dist/index.js",
+    "scripts": {
+        "dev": "tsx watch src/index.ts",
+        "build": "tsc",
+        "typecheck": "tsc --noEmit"
+    },
+    "devDependencies": {
+        "@types/node": "^22.10.2",
+        "tsx": "^4.19.2",
+        "typescript": "^5.7.2"
+    },
+    "type": "module",
+    "dependencies": {
+        "node-pty": "^1.1.0"
+    }
+}

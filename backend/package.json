@@ -1,0 +1,32 @@
+{
+    "name":  "@way/backend",
+    "version":  "1.0.0",
+    "private":  true,
+    "description":  "API do Way Servidores (Express + PostgreSQL).",
+    "main":  "dist/backend/src/index.js",
+    "scripts":  {
+                    "dev":  "tsx watch src/index.ts",
+                    "start":  "node dist/backend/src/index.js",
+                    "build":  "tsc",
+                    "typecheck":  "tsc --noEmit"
+                },
+    "dependencies":  {
+                         "@way/file-manager":  "*",
+                         "@way/mod-manager":  "*",
+                         "@way/plugin-manager":  "*",
+                         "@way/server-manager":  "*",
+                         "cors":  "^2.8.5",
+                         "dotenv":  "^16.4.7",
+                         "express":  "^4.21.2",
+                         "pg":  "^8.13.1"
+                     },
+    "devDependencies":  {
+                            "@types/cors":  "^2.8.17",
+                            "@types/express":  "^4.17.21",
+                            "@types/node":  "^22.10.2",
+                            "@types/pg":  "^8.11.10",
+                            "tsx":  "^4.19.2",
+                            "typescript":  "^5.7.2"
+                        },
+    "type":  "module"
+}

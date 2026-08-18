@@ -1,0 +1,39 @@
+{
+  "name": "way-servidores",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Painel de gerenciamento de servidores Minecraft multi-versão e multi-motor (Paper, Spigot, Purpur, Fabric, Forge, NeoForge)",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "server-manager",
+    "plugin-manager",
+    "mod-manager",
+    "file-manager",
+    "workers"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "dev:backend": "npm run dev -w backend",
+    "dev:frontend": "npm run dev -w frontend",
+    "build": "npm run build -w backend && npm run build -w workers && npm run build -w frontend",
+    "start": "npm run start -w backend",
+    "typecheck": "npm run typecheck -w backend && npm run typecheck -w frontend",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint . --max-warnings=25",
+    "worker": "npm run worker -w workers"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.17.0",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.2",
+    "vitest": "^2.1.8"
+  }
+}

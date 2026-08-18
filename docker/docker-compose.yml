@@ -1,0 +1,59 @@
+# ============================================================
+# Way Servidores - docker-compose (produção local / VPS)
+# Uso: docker compose -f docker/docker-compose.yml up -d
+# ============================================================
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: way
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-way-local-password}
+      POSTGRES_DB: way_servidores
+    volumes:
+      - way-db:/var/lib/postgresql/data
+      - ../database/migrations:/docker-entrypoint-initdb.d:ro
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      DATABASE_URL: postgres://way:${POSTGRES_PASSWORD:-way-local-password}@db:5432/way_servidores
+    volumes:
+      - way-servers:/var/way/servidores
+      - way-cache:/app/database/cache
+    depends_on:
+      - db
+
+  worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    command: ["node", "dist/workers/src/index.js"]
+    working_dir: /app/workers
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      DATABASE_URL: postgres://way:${POSTGRES_PASSWORD:-way-local-password}@db:5432/way_servidores
+    volumes:
+      - way-cache:/app/database/cache
+    depends_on:
+      - backend
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  way-db:
+  way-servers:
+  way-cache:

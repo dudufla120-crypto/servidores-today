@@ -1,0 +1,17 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "types": ["vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["../components/*"],
+      "@pages/*": ["../pages/*"],
+      "@api/*": ["../api/*"]
+    }
+  },
+  "include": ["src", "../components", "../pages", "../api"]
+}

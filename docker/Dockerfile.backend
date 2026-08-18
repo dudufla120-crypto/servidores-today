@@ -1,0 +1,43 @@
+# ============================================================
+# Way Servidores - backend + worker (imagem única, comando troca)
+# Build: docker build -f docker/Dockerfile.backend -t way-backend .
+# ============================================================
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+COPY package.json tsconfig.base.json ./
+COPY backend/package.json backend/
+COPY server-manager/package.json server-manager/
+COPY plugin-manager/package.json plugin-manager/
+COPY mod-manager/package.json mod-manager/
+COPY file-manager/package.json file-manager/
+COPY workers/package.json workers/
+COPY frontend/package.json frontend/
+
+RUN npm install
+
+COPY . .
+
+RUN npm run build -w backend
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+COPY --from=build /app/package.json /app/tsconfig.base.json ./
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/api ./api
+COPY --from=build /app/database ./database
+COPY --from=build /app/backend ./backend
+COPY --from=build /app/server-manager ./server-manager
+COPY --from=build /app/plugin-manager ./plugin-manager
+COPY --from=build /app/mod-manager ./mod-manager
+COPY --from=build /app/file-manager ./file-manager
+COPY --from=build /app/workers ./workers
+
+EXPOSE 4000
+
+CMD ["node", "dist/backend/src/index.js"]
