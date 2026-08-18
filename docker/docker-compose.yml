@@ -22,8 +22,10 @@ services:
     env_file: ../.env
     environment:
       DATABASE_URL: postgres://way:${POSTGRES_PASSWORD:-way-local-password}@db:5432/way_servidores
+    ports:
+      - "25565-25665:25565-25665"
     volumes:
-      - way-servers:/var/way/servidores
+      - way-servers:/app/data/servidores
       - way-cache:/app/database/cache
     depends_on:
       - db
@@ -32,8 +34,8 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.backend
-    command: ["node", "dist/workers/src/index.js"]
-    working_dir: /app/workers
+    command: ["node", "workers/dist/workers/src/index.js"]
+    working_dir: /app
     restart: unless-stopped
     env_file: ../.env
     environment:
