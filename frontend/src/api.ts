@@ -2,6 +2,8 @@ import type {
   CompatibilityResult,
   Engine,
   EngineInfo,
+  ModSearchResult,
+  PluginSearchResult,
   ServerConfig,
 } from "../../api/types";
 
@@ -119,6 +121,42 @@ export function fetchFileContent(
   path: string,
 ): Promise<{ content: string; truncated: boolean }> {
   return request(`/servers/${id}/files/content?path=${encodeURIComponent(path)}`);
+}
+
+export function searchPlugins(
+  q: string,
+  provider: string,
+): Promise<{ results: PluginSearchResult[] }> {
+  return request(`/plugins/search?q=${encodeURIComponent(q)}&provider=${provider}`);
+}
+
+export function installPlugin(
+  id: string,
+  downloadUrl: string,
+  fileName: string,
+): Promise<{ installed: string }> {
+  return request(`/servers/${id}/plugins`, {
+    method: "POST",
+    body: JSON.stringify({ downloadUrl, fileName }),
+  });
+}
+
+export function searchMods(
+  q: string,
+  provider: string,
+): Promise<{ results: ModSearchResult[] }> {
+  return request(`/mods/search?q=${encodeURIComponent(q)}&provider=${provider}`);
+}
+
+export function installMod(
+  id: string,
+  downloadUrl: string,
+  fileName: string,
+): Promise<{ installed: string }> {
+  return request(`/servers/${id}/mods`, {
+    method: "POST",
+    body: JSON.stringify({ downloadUrl, fileName }),
+  });
 }
 
 export function fetchServer(id: string): Promise<{

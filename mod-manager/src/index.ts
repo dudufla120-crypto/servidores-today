@@ -34,15 +34,31 @@ async function searchModrinth(query: string, limit: number): Promise<PluginSearc
       slug: string;
     }[];
   }>(`https://api.modrinth.com/v2/search?query=${encodeURIComponent(query)}&limit=${limit}&facets=[["project_type:mod"]]`);
-  return data.hits.map((h) => ({
-    provider: "modrinth",
-    id: h.project_id,
-    name: h.title,
-    author: h.author,
-    description: h.description,
-    downloads: h.downloads,
-    url: `https://modrinth.com/mod/${h.slug}`,
-  }));
+  return Promise.all(
+    data.hits.map(async (h) => {
+      let downloadUrl = "";
+      try {
+        const versions = await fetchJson<
+          { files: { url: string; filename: string }[] }[]
+        >(`https://api.modrinth.com/v2/project/${h.project_id}/version`);
+        const p = versions[0]?.files?.[0];
+        downloadUrl = p?.url ?? "";
+      } catch {
+        downloadUrl = "";
+      }
+      return {
+        provider: "modrinth",
+        id: h.project_id,
+        name: h.title,
+        author: h.author,
+        description: h.description,
+        downloads: h.downloads,
+        url: `https://modrinth.com/mod/${h.slug}`,
+        downloadUrl,
+        fileName: downloadUrl.split("/").pop() ?? `${h.slug}.jar`,
+      };
+    }),
+  );
 }
 
 async function searchCurseforge(
@@ -85,8 +101,11 @@ export async function installMod(
   fileName: string,
 ): Promise<string> {
   const { join } = await import("node:path");
+  const { mkdir } = await import("node:fs/promises");
   const { downloadFile } = await import("./http.js");
-  const dest = join(serverInstallDir, "mods", fileName);
+  const modsDir = join(serverInstallDir, "mods");
+  await mkdir(modsDir, { recursive: true });
+  const dest = join(modsDir, fileName);
   await downloadFile(downloadUrl, dest);
   return dest;
 }

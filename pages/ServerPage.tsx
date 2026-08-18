@@ -6,14 +6,18 @@ import {
   fetchFiles,
   fetchServer,
   fetchServerLogs,
+  installMod,
+  installPlugin,
   restartServer,
+  searchMods,
+  searchPlugins,
   sendServerCommand,
   startServer,
   stopServer,
   uploadFile,
 } from "../frontend/src/api";
 
-type Tab = "console" | "files";
+type Tab = "console" | "files" | "plugins" | "mods";
 
 export function ServerPage({ id, onBack }: { id: string; onBack: () => void }) {
   const [tab, setTab] = useState<Tab>("console");
@@ -45,6 +49,14 @@ export function ServerPage({ id, onBack }: { id: string; onBack: () => void }) {
   const consoleRef = useRef<HTMLPreElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [viewing, setViewing] = useState<{ path: string; content: string; truncated: boolean } | null>(null);
+  const [storeQuery, setStoreQuery] = useState("");
+  const [storeResults, setStoreResults] = useState<
+    | { kind: "plugin" | "mod"; provider: string; id: string; name: string; author: string; description: string; downloads: number; url: string; fileName?: string; downloadUrl?: string }[]
+    | null
+  >(null);
+  const [storeProvider, setStoreProvider] = useState("modrinth");
+  const [installingId, setInstallingId] = useState<string | null>(null);
+  const [storeBusy, setStoreBusy] = useState(false);
 
   const reload = () => {
     fetchServer(id)
@@ -184,8 +196,34 @@ export function ServerPage({ id, onBack }: { id: string; onBack: () => void }) {
       .catch((e: Error) => setError(e.message));
   };
 
-  const run = async (fn: () => Promise<unknown>) => {
-    setBusy(true);
+  const doSearch = () => {
+    const q = storeQuery.trim();
+    if (!q) return;
+    setStoreBusy(true);
+    setError(null);
+    const kind = tab === "plugins" ? "plugin" : "mod";
+    const fn = tab === "plugins" ? searchPlugins : searchMods;
+    fn(q, storeProvider)
+      .then((r) => setStoreResults(r.results.map((x) => ({ ...x, kind }))))
+      .catch((e: Error) => setError(e.message))
+      .finally(() => setStoreBusy(false));
+  };
+
+  const doInstall = (r: NonNullable<typeof storeResults>[number]) => {
+    if (!r.downloadUrl) {
+      setError("Este item não tem download disponível (verifique o provedor).");
+      return;
+    }
+    setInstallingId(r.id);
+    setError(null);
+    const fn = r.kind === "plugin" ? installPlugin : installMod;
+    fn(id, r.downloadUrl, r.fileName ?? `${r.id}.jar`)
+      .then(() => setError(null))
+      .catch((e: Error) => setError(e.message))
+      .finally(() => setInstallingId(null));
+  };
+
+  const run = async (fn: () => Promise<unknown>) => {    setBusy(true);
     setError(null);
     try {
       await fn();
@@ -275,10 +313,13 @@ export function ServerPage({ id, onBack }: { id: string; onBack: () => void }) {
       )}
 
       <div className="mb-3 flex gap-1">
-        {(["console", "files"] as Tab[]).map((t) => (
+        {(["console", "files", "plugins", "mods"] as Tab[]).map((t) => (
           <button
             key={t}
-            onClick={() => setTab(t)}
+            onClick={() => {
+              setTab(t);
+              setStoreResults(null);
+            }}
             className={`rounded-lg px-3 py-1.5 text-sm font-medium capitalize transition ${
               tab === t ? "bg-way-600 text-white" : "bg-white text-slate-600 hover:bg-slate-100"
             }`}
@@ -429,6 +470,88 @@ export function ServerPage({ id, onBack }: { id: string; onBack: () => void }) {
               <li className="px-3 py-6 text-center text-sm text-slate-400">Pasta vazia</li>
             )}
           </ul>
+        </div>
+      )}
+
+      {(tab === "plugins" || tab === "mods") && (
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <input
+              value={storeQuery}
+              onChange={(e) => setStoreQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && doSearch()}
+              placeholder={`Buscar ${tab === "plugins" ? "plugin" : "mod"} (ex.: ${tab === "plugins" ? "essentials, luckperms" : "sodium, lithium"})...`}
+              className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-way-500 focus:outline-none"
+            />
+            <select
+              value={storeProvider}
+              onChange={(e) => {
+                setStoreProvider(e.target.value);
+                setStoreResults(null);
+              }}
+              className="rounded-lg border border-slate-200 px-2 py-2 text-sm"
+            >
+              {tab === "plugins" ? (
+                <>
+                  <option value="modrinth">Modrinth</option>
+                  <option value="hangar">PaperMC Hangar</option>
+                  <option value="spiget">SpigotMC</option>
+                </>
+              ) : (
+                <>
+                  <option value="modrinth">Modrinth</option>
+                  <option value="curseforge">CurseForge</option>
+                </>
+              )}
+            </select>
+            <button
+              onClick={doSearch}
+              disabled={storeBusy}
+              className="rounded-lg bg-way-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-way-700 disabled:opacity-50"
+            >
+              {storeBusy ? "Buscando..." : "Buscar"}
+            </button>
+          </div>
+
+          {server?.status === "running" && (
+            <p className="mb-3 rounded-lg bg-amber-50 px-3 py-1.5 text-xs text-amber-700">
+              Reinicie o servidor após instalar (botão Reiniciar acima).
+            </p>
+          )}
+
+          {storeResults === null ? (
+            <p className="py-6 text-center text-sm text-slate-400">
+              Busque {tab === "plugins" ? "um plugin" : "um mod"} para instalar no servidor.
+            </p>
+          ) : storeResults.length === 0 ? (
+            <p className="py-6 text-center text-sm text-slate-400">Nenhum resultado.</p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {storeResults.map((r) => (
+                <li key={r.provider + r.id} className="flex items-center justify-between gap-3 py-2.5">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-800">
+                      {r.name}
+                      <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-slate-500">
+                        {r.provider}
+                      </span>
+                    </p>
+                    <p className="truncate text-xs text-slate-500">
+                      por {r.author} · {r.downloads.toLocaleString("pt-BR")} downloads
+                    </p>
+                    <p className="line-clamp-2 truncate text-xs text-slate-400">{r.description}</p>
+                  </div>
+                  <button
+                    onClick={() => doInstall(r)}
+                    disabled={installingId === r.id || !r.downloadUrl}
+                    className="shrink-0 rounded-lg bg-way-600 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-way-700 disabled:opacity-50"
+                  >
+                    {installingId === r.id ? "Instalando..." : "Instalar"}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 

@@ -86,6 +86,19 @@ export interface PluginSearchResult {
   downloads: number;
   url: string;
   fileName?: string;
+  downloadUrl?: string;
+}
+
+export interface ModSearchResult {
+  provider: "modrinth" | "curseforge";
+  id: string;
+  name: string;
+  author: string;
+  description: string;
+  downloads: number;
+  url: string;
+  fileName?: string;
+  downloadUrl?: string;
 }
 
 export interface FileEntry {
